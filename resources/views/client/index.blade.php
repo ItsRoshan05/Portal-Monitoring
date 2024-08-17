@@ -4,10 +4,18 @@
 <head>
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>Index - Bootslander Bootstrap Template</title>
+    <title>Simo | Portal Monitoring</title>
     <meta name="description" content="">
     <meta name="keywords" content="">
 
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="
+https://cdn.jsdelivr.net/npm/wordcloud@1.2.2/src/wordcloud2.min.js
+"></script>
     <!-- Favicons -->
     <link href="client/client/assets/img/favicon.png" rel="icon">
     <link href="client/client/assets/img/apple-touch-icon.png" rel="apple-touch-icon">
@@ -138,31 +146,34 @@
             font-weight: bold;
         }
 
-   
-    /* Optional additional styles for customization */
-    #prediksi {
-        border-top: 2px solid #007bff;
-    }
+        #wordcloud {
+            width: 400px;
+            height: 400px;
+        }
 
-    .card {
-        border-radius: 0.75rem;
-    }
+        /* Optional additional styles for customization */
+        #prediksi {
+            border-top: 2px solid #007bff;
+        }
 
-    .btn-primary {
-        background-color: #007bff;
-        border-color: #007bff;
-        transition: background-color 0.2s, border-color 0.2s;
-    }
+        .card {
+            border-radius: 0.75rem;
+        }
 
-    .btn-primary:hover {
-        background-color: #0056b3;
-        border-color: #004085;
-    }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
 
-    .alert-success {
-        border-radius: 0.75rem;
-    }
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #004085;
+        }
 
+        .alert-success {
+            border-radius: 0.75rem;
+        }
 
     </style>
     <!-- =======================================================
@@ -179,7 +190,7 @@
     <header id="header" class="header d-flex align-items-center fixed-top">
         <div class="container-fluid container-xl position-relative d-flex align-items-center justify-content-between">
 
-            <a href="index.html" class="logo d-flex align-items-center">
+            <a href="/" class="logo d-flex align-items-center">
                 <!-- Uncomment the line below if you also wish to use an image logo -->
                 <img src="client/client/assets/img/logo.png" alt="">
                 <h1 class="sitename">Simo</h1>
@@ -217,7 +228,7 @@
                     </div>
 
                     <div class="col-lg-6  d-flex flex-column justify-content-center" data-aos="fade-in">
-                        <h1>Analisis Sentimen Berita Indonesia<span></span></h1>
+                        <h1>Analisis Sentimen Berita Politik Indonesia<span></span></h1>
                         <p>Temukan tren sentimen yang sedang berkembang dan buat keputusan yang lebih baik</p>
                         <div class="d-flex">
                             <a href="#about" class="btn-get-started">Mulai Mengekplorasi</a>
@@ -457,34 +468,35 @@
 
 
         <section id="prediksi" class="bg-light py-5">
-    <div class="container">
-        <h2 class="text-center mb-4">Coba Prediksi Sentimentnya</h2>
-        <div class="row justify-content-center">
-            <div class="col-md-8 col-lg-6">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <form method="POST" action="{{ route('predict') }}">
-                            @csrf
-                            <div class="form-group">
-                                <label for="inputText" class="form-label">Masukkan Text:</label>
-                                <textarea class="form-control" id="inputText" rows="6"
-                                    placeholder="Tuliskan text kamu di sini" name="text" required></textarea>
+            <div class="container">
+                <h2 class="text-center mb-4">Coba Prediksi Sentimentnya</h2>
+                <div class="row justify-content-center">
+                    <div class="col-md-8 col-lg-6">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <form method="POST" action="{{ route('predict') }}">
+                                    @csrf
+                                    <div class="form-group">
+                                        <label for="inputText" class="form-label">Masukkan Text:</label>
+                                        <textarea class="form-control" id="inputText" rows="6"
+                                            placeholder="Tuliskan text kamu di sini" name="text" required></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary btn-lg mt-3 w-100">Analyze
+                                        Sentiment</button>
+                                </form>
                             </div>
-                            <button type="submit" class="btn btn-primary btn-lg mt-3 w-100">Analyze Sentiment</button>
-                        </form>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        @if(isset($prediction))
-            <div class="alert alert-success mt-4" role="alert">
-                <h4 class="alert-heading">Prediction Result:</h4>
-                <p class="mb-0">{{ $prediction }}</p>
+                @if(isset($prediction))
+                    <div class="alert alert-success mt-4" role="alert">
+                        <h4 class="alert-heading">Prediction Result:</h4>
+                        <p class="mb-0">{{ $prediction }}</p>
+                    </div>
+                @endif
             </div>
-        @endif
-    </div>
-</section>
+        </section>
 
 
         <!-- Details Section -->
@@ -752,7 +764,32 @@
             </div>
 
         </section><!-- /Team Section -->
+        <section>
+            <div class="container">
+                <div id="sentimentmap" style="height: 500px;">
 
+                </div>
+            </div>
+        </section>
+
+        <section id="trending-news">
+            <div class="container">
+
+                <h2>Highlight Tren Berita</h2>
+                <div style="display: flex; justify-content: space-between;">
+                    <div style="width: 48%;">
+                        <h3>Kata Kunci Populer</h3>
+                        <canvas id="wordcloud" width="400" height="400"></canvas>
+                    </div>
+
+                    <div style="width: 48%;">
+                        <h3>Frekuensi Kata Kunci Teratas</h3>
+                        <canvas id="keywordsChart" width="400" height="400"></canvas>
+                    </div>
+                </div>
+            </div>
+
+        </section>
 
         <!-- Pricing Section -->
         <section id="pricing" class="pricing section">
@@ -1011,7 +1048,7 @@
 
     <!-- Preloader -->
     <div id="preloader"></div>
-
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <!-- Vendor JS Files -->
     <script src="client/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="client/assets/vendor/php-email-form/validate.js"></script>
@@ -1031,6 +1068,118 @@
     <!-- Main JS File -->
     <script src="client/kostum.js"></script>
     <script src="client/assets/js/main.js"></script>
+    <script>
+        // Inisialisasi peta dan set view awal
+        var map = L.map('sentimentmap').setView([-6.200000, 106.816666], 5);
+
+        // Menambahkan peta dasar dari OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Data dummy untuk sentiment map
+        var sentimentData = [{
+                lat: -6.200000,
+                lon: 106.816666,
+                sentiment: 'positive',
+                title: 'Berita A',
+                summary: 'Ringkasan Berita A'
+            },
+            {
+                lat: -7.250445,
+                lon: 112.768845,
+                sentiment: 'negative',
+                title: 'Berita B',
+                summary: 'Ringkasan Berita B'
+            },
+            {
+                lat: -0.789275,
+                lon: 113.921327,
+                sentiment: 'neutral',
+                title: 'Berita C',
+                summary: 'Ringkasan Berita C'
+            },
+            {
+                lat: 3.595196,
+                lon: 98.672226,
+                sentiment: 'positive',
+                title: 'Berita D',
+                summary: 'Ringkasan Berita D'
+            }
+        ];
+
+        // Fungsi untuk menentukan warna berdasarkan sentimen
+        function getColor(sentiment) {
+            switch (sentiment) {
+                case 'positive':
+                    return '#00ff91';
+                case 'negative':
+                    return '#ff006f';
+                case 'neutral':
+                    return '#9000ff';
+                default:
+                    return 'gray';
+            }
+        }
+
+        // Menambahkan marker ke peta
+        sentimentData.forEach(function (data) {
+            var marker = L.circleMarker([data.lat, data.lon], {
+                color: getColor(data.sentiment),
+                radius: 10
+            }).addTo(map);
+
+            // Tambahkan popup untuk marker
+            marker.bindPopup(
+                `<strong>${data.title}</strong><br>${data.summary}<br><em>Sentiment: ${data.sentiment}</em>`
+            );
+        });
+
+    </script>
+    <script>
+        window.onload = function () {
+            // Ambil data Word Cloud dari variabel PHP
+            var wordCloudData = @json($katas);
+
+            WordCloud(document.getElementById('wordcloud'), {
+                list: wordCloudData,
+                gridSize: 10,
+                weightFactor: 10,
+                fontFamily: 'Times, serif',
+                color: 'random-dark',
+                backgroundColor: '#f0f0f0'
+            });
+
+            // Ambil data Chart.js dari variabel PHP
+            var chartLabels = @json($chartLabels);
+            var chartData = @json($chartData);
+
+            // Render Chart.js
+            var ctx = document.getElementById('keywordsChart').getContext('2d');
+            var keywordsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        label: 'Frekuensi',
+                        data: chartData,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        };
+
+    </script>
+
 
 </body>
 

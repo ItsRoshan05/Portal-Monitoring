@@ -75,6 +75,11 @@
                                     <i class="fas fa-link"></i> Scraping Raw
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('predicted.index') }}">
+                                    <i class="fas fa-anchor"></i> Data Terprediksi
+                                </a>
+                            </li>
                         </ul>
                     </div>
                 </li>

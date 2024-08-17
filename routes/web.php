@@ -7,6 +7,7 @@ use App\Http\Controllers\CsvModelingController;
 use App\Http\Controllers\DashboardAdminController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MetodeController;
+use App\Http\Controllers\PredictedController;
 use App\Http\Controllers\SpiderRawAdminController;
 use App\Http\Controllers\TargetUserSpiderController;
 use App\Http\Controllers\UserController;
@@ -56,6 +57,7 @@ Route::prefix('adm')->middleware('auth')->group(function () {
     Route::get('/modelevaluasi', [CsvModelingController::class, 'showEvaluation'])->name('csv.showEvaluation');
     Route::get('/tfidf', [MetodeController::class, 'showtfidf'])->name('metode.tfidf');
     Route::get('/tfidf/{id}', [MetodeController::class, 'showdetailtfidf'])->name('metode.detailtfidf');
+    Route::get('/predicted', [PredictedController::class, 'index'])->name('predicted.index');
 
     
 

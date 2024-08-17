@@ -21,4 +21,9 @@ class SpiderRaw extends Model
     ];
 
     public $timestamps = true;
+
+    public function predicted()
+    {
+        return $this->hasMany(Predicted::class, 'id_spider_raw', 'id');
+    }
 }

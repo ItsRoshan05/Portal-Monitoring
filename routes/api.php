@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PredictedController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SpiderrawController;
@@ -20,4 +21,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::get('/articles', [SpiderrawController::class, 'index']);
+Route::get('/predicted', [PredictedController::class, 'apiIndex'])->middleware('apikey');
+
 

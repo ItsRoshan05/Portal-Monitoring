@@ -1,7 +1,7 @@
 @extends('layouts.admin.main')
 
 @section('headingheader')
-Dashboard
+Users
 @endsection
 
 @section('mainkoten')

@@ -127,6 +127,86 @@ Dashboard
                 </div>
             </div>
         </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+
+        <div class="card card-round">
+            <div class="card-header">
+                <div class="card-head-row">
+                    <div class="card-title">Sentiment Berdasarkan Target</div>
+                    <div class="card-tools">
+                        <a href="#" class="btn btn-label-success btn-round btn-sm me-2">
+                            <span class="btn-label">
+                                <i class="fa fa-pencil"></i>
+                            </span>
+                            Export
+                        </a>
+                        <a href="#" class="btn btn-label-info btn-round btn-sm">
+                            <span class="btn-label">
+                                <i class="fa fa-print"></i>
+                            </span>
+                            Print
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="min-height: 375px">
+                    <canvas id="sentimentUserTarget"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="card-title mb-0">Data Ter Prediksi Netral</h4>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="basic-datatables" class="display table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Judul</th> <!-- Tambahkan kolom judul -->
+                                <th>Target</th>
+                                <th>Proses</th>
+                                <th>Sentiment</th>
+                            </tr>
+                        </thead>
+                        <tfoot>
+                            <tr>
+                                <th>ID</th>
+                                <th>Judul</th> <!-- Tambahkan kolom judul -->
+                                <th>Target</th>
+                                <th>Proses</th>
+                                <th>Sentiment</th>
+                            </tr>
+                        </tfoot>
+                        <tbody>
+                            @foreach($dataNetral as $item)
+                                <tr>
+                                    <td>{{ $item->id }}</td>
+                                    <td>{{ $item->spiderRaw->judul ?? 'Tidak ada judul' }}
+                                    <td>{{ $item->spiderRaw->user_target ?? 'Tidak ada judul' }}
+
+                                    </td>
+                                    <!-- Ambil judul dari relasi -->
+                                    <td>{{ $item->proses }}</td>
+                                    <td>{{ $item->sentiment }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
 
@@ -134,8 +214,88 @@ Dashboard
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Data for user statistics
+    // Data from Laravel
+    var growthData = @json($growthData);
+
+    // Prepare labels and datasets
+    var labels = [];
+    var positiveData = [];
+    var neutralData = [];
+    var negativeData = [];
+
+    growthData.forEach(function (item) {
+        labels.push(item.user_target);
+        positiveData.push(item.positive || 0);
+        neutralData.push(item.neutral || 0);
+        negativeData.push(item.negative || 0);
+    });
+
+    // Chart.js Configuration
+    var ctx = document.getElementById('sentimentUserTarget').getContext('2d');
+    var sentimentChart = new Chart(ctx, {
+        type: 'bar', // Use 'bar' for categorical x-axis
+        data: {
+            labels: labels,
+            datasets: [{
+                    label: 'Positif',
+                    borderColor: '#663399', // Ungu tua
+                    backgroundColor: '#663399', // Ungu tua
+                    data: positiveData
+                },
+                {
+                    label: 'Netral',
+                    borderColor: '#9966CC', // Ungu muda
+                    backgroundColor: '#9966CC', // Ungu muda
+                    data: neutralData
+                },
+                {
+                    label: 'Negatif',
+                    borderColor: '#FFD700', // Emas
+                    backgroundColor: '#FFD700', // Emas
+                    data: negativeData
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    type: 'category', // Make sure x-axis is categorical
+                    beginAtZero: false
+                },
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function (tooltipItem) {
+                            return tooltipItem.dataset.label + ': ' + tooltipItem.raw;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+</script>
+
+
+<script>
+    $(document).ready(function () {
+        $("#basic-datatables").DataTable();
+    });
+
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Data untuk user statistics
     const userStatistics = @json($userStatistics);
     const labels = Object.keys(userStatistics);
     const casualData = labels.map(month => userStatistics[month]['casual'] || 0);
@@ -148,46 +308,45 @@ document.addEventListener('DOMContentLoaded', function() {
         type: 'line',
         data: {
             labels: labels,
-            datasets: [
-                {
-                    label: 'Casual',
-                    data: casualData,
-                    borderColor: 'rgba(75, 192, 192, 1)', // Warna border garis
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)', // Warna latar belakang area di bawah garis
-                    fill: true, // Isi area di bawah garis
-                    tension: 0.4, // Kemiringan garis lebih lembut
-                    borderWidth: 3, // Lebar border garis
-                    pointRadius: 6, // Ukuran titik data
-                    pointBackgroundColor: 'rgba(75, 192, 192, 1)', // Warna titik data
-                    pointBorderColor: '#fff', // Warna border titik data
-                    pointBorderWidth: 2 // Lebar border titik data
-                },
-                {
-                    label: 'Premium',
-                    data: premiumData,
-                    borderColor: 'rgba(255, 99, 132, 1)', // Warna border garis
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)', // Warna latar belakang area di bawah garis
-                    fill: true, // Isi area di bawah garis
-                    tension: 0.4, // Kemiringan garis lebih lembut
-                    borderWidth: 3, // Lebar border garis
-                    pointRadius: 6, // Ukuran titik data
-                    pointBackgroundColor: 'rgba(255, 99, 132, 1)', // Warna titik data
-                    pointBorderColor: '#fff', // Warna border titik data
-                    pointBorderWidth: 2 // Lebar border titik data
-                },
-                {
-                    label: 'Sultan',
-                    data: sultanData,
-                    borderColor: 'rgba(255, 159, 64, 1)', // Warna border garis
-                    backgroundColor: 'rgba(255, 159, 64, 0.2)', // Warna latar belakang area di bawah garis
-                    fill: true, // Isi area di bawah garis
-                    tension: 0.4, // Kemiringan garis lebih lembut
-                    borderWidth: 3, // Lebar border garis
-                    pointRadius: 6, // Ukuran titik data
-                    pointBackgroundColor: 'rgba(255, 159, 64, 1)', // Warna titik data
-                    pointBorderColor: '#fff', // Warna border titik data
-                    pointBorderWidth: 2 // Lebar border titik data
-                }
+            datasets: [{
+                label: 'Casual',
+                data: casualData,
+                borderColor: 'rgba(34, 139, 34, 1)', // Hijau tua
+                backgroundColor: 'rgba(34, 139, 34, 0.2)',
+                fill: true,
+                tension: 0.4,
+                borderWidth: 3,
+                pointRadius: 6,
+                pointBackgroundColor: 'rgba(34, 139, 34, 1)',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2
+            },
+            {
+                label: 'Premium',
+                data: premiumData,
+                borderColor: 'rgba(0, 100, 0, 1)', // Hijau tua lebih gelap
+                backgroundColor: 'rgba(0, 100, 0, 0.2)',
+                fill: true,
+                tension: 0.4,
+                borderWidth: 3,
+                pointRadius: 6,
+                pointBackgroundColor: 'rgba(0, 100, 0, 1)',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2
+            },
+            {
+                label: 'Sultan',
+                data: sultanData,
+                borderColor: 'rgba(50, 205, 50, 1)', // Hijau tua lebih terang
+                backgroundColor: 'rgba(50, 205, 50, 0.2)',
+                fill: true,
+                tension: 0.4,
+                borderWidth: 3,
+                pointRadius: 6,
+                pointBackgroundColor: 'rgba(50, 205, 50, 1)',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2
+            }
             ]
         },
         options: {
@@ -196,60 +355,34 @@ document.addEventListener('DOMContentLoaded', function() {
                 legend: {
                     position: 'top',
                     labels: {
-                        boxWidth: 12, // Ukuran box di legend
-                        padding: 10 // Padding di legend
+                        boxWidth: 12,
+                        padding: 10
                     }
                 },
                 tooltip: {
-                    backgroundColor: '#fff',
-                    titleColor: '#000',
-                    bodyColor: '#000',
-                    borderColor: '#ddd',
-                    borderWidth: 1,
-                    caretSize: 6, // Ukuran 'caret' tooltip
-                    callbacks: {
-                        label: function(tooltipItem) {
-                            return tooltipItem.dataset.label + ': ' + tooltipItem.raw;
-                        }
-                    }
+                    // ... konfigurasi tooltip
                 }
             },
             scales: {
                 x: {
-                    title: {
-                        display: true,
-                        text: 'Month',
-                        font: {
-                            size: 14
-                        }
-                    },
-                    ticks: {
-                        autoSkip: true,
-                        maxTicksLimit: 12 // Batasi jumlah ticks di sumbu X
-                    }
+                    // ... konfigurasi sumbu x
                 },
                 y: {
-                    title: {
-                        display: true,
-                        text: 'Number of Users',
-                        font: {
-                            size: 14
-                        }
-                    },
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 5, // Langkah nilai di sumbu Y
-                        callback: function(value) {
-                            return value.toLocaleString(); // Format angka dengan pemisah ribuan
-                        }
-                    }
+                    // ... konfigurasi sumbu y
+                }
+            },
+            elements: {
+                line: {
+                    tension: 0.4,
+                    fill: true
                 }
             }
         }
     });
 });
 
-document.addEventListener('DOMContentLoaded', function() {
+
+    document.addEventListener('DOMContentLoaded', function () {
         const sentimentData = @json($sentimentData);
 
         // Prepare data for pie chart
@@ -266,11 +399,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     label: 'Sentiment Distribution',
                     data: data,
                     backgroundColor: [
-                        '#ff6384',
-                        '#36a2eb',
-                        '#ffce56',
-                        '#4bc0c0',
-                        '#f7786b'
+                        '#023047', // Dark blue
+                        '#F26419', // Orange
+                        '#6C5B7B', // Purple
+                        '#E75480', // Pink
+                        '#41B3A3' // Teal
                     ],
                     borderWidth: 1
                 }]
@@ -283,7 +416,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     tooltip: {
                         callbacks: {
-                            label: function(tooltipItem) {
+                            label: function (tooltipItem) {
                                 return tooltipItem.label + ': ' + tooltipItem.raw;
                             }
                         }
@@ -293,15 +426,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-
 </script>
 @endsection
 
 @section('css')
 <style>
     #statisticsChart {
-    border-radius: 10px; /* Menambahkan sudut melengkung pada chart */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Menambahkan bayangan */
-}
+        border-radius: 10px;
+        /* Menambahkan sudut melengkung pada chart */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        /* Menambahkan bayangan */
+    }
+
 </style>
 @endsection

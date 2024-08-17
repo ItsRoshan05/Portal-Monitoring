@@ -16,6 +16,8 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // $schedule->command('inspire')->hourly();
+            // Jalankan spider setiap hari pada jam 1 pagi
+        $schedule->command('scrapy:run')->dailyAt('01:00');
     }
 
     /**
